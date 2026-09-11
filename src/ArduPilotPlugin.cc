@@ -505,7 +505,9 @@ void gz::sim::systems::ArduPilotPlugin::Configure(
     return;
   }
 
-  // Missed update count before we declare arduPilotOnline status false
+  // Missed update count before we either
+  // a) (if lock_step is false ) declare arduPilotOnline status false or
+  // b) (if lock_step is true) resend the last state if lock_step is set.
   this->dataPtr->connectionTimeoutMaxCount =
     sdfClone->Get("connectionTimeoutMaxCount", 10).first;
 
@@ -1552,8 +1554,19 @@ bool gz::sim::systems::ArduPilotPlugin::ReceiveServoPacket(
                     }
                     if (!this->dataPtr->json_str.empty())
                     {
-                        gzwarn << "[" << this->dataPtr->modelName << "] "
-                            << "ReceiveServoPacket() did not get a packet. Resending State...\n";
+                        static double last_warning_timestamp = -1;
+                        double t = std::chrono::duration_cast<std::chrono::duration<double>>(
+                            _info.simTime).count();
+                        if (last_warning_timestamp != t)
+                        {   // We didn't warn about particular interruption, yet.
+                            gzwarn << "[" << this->dataPtr->modelName << "] "
+                              << "Did not receive an update from the ArduPilot for "
+                              << this->dataPtr->connectionTimeoutMaxCount
+                              << " consecutive attempts. The simulation freezes until I get an update! Resending state..."
+                                 " (If this message appears too often either increase connectionTimeoutMaxCount in your SDF-Model,"
+                                 " disable lock_step or make the SITL answer faster.)\n";
+                            last_warning_timestamp = t;
+                        }
                         this->SendState();
                     }
                 }
