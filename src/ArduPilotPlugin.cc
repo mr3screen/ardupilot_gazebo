@@ -1638,7 +1638,7 @@ bool gz::sim::systems::ArduPilotPlugin::ReceiveServoPacket(
     // check for duplicate frame
     else if (pkt_frame_count == this->dataPtr->fcu_frame_count)
     {
-        gzwarn << "Duplicate input frame\n";
+        gzwarn << "Duplicate input frame (no. " << pkt_frame_count << ")\n";
 
         // for lock-step resend last state rather than ignore
         if (this->dataPtr->isLockStep)
