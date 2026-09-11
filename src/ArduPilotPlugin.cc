@@ -1247,11 +1247,10 @@ void gz::sim::systems::ArduPilotPlugin::PostUpdate(
         double t =
             std::chrono::duration_cast<std::chrono::duration<double>>(
                 _info.simTime).count();
-        if (!this->CreateStateJSON(t, _ecm))
-        {   // Don't send an empty network packet if the state message could not be written yet.
-            // The next ReceiveServoPacket() in PreUpdate() will try again.
-            this->SendState();
-        }
+        this->CreateStateJSON(t, _ecm);
+        // Might send an empty network packet if the state message could not be written yet.
+        // The next ReceiveServoPacket() in PreUpdate() will try again.
+        this->SendState();
         this->dataPtr->lastControllerUpdateTime = _info.simTime;
     }
 }
