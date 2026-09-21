@@ -2078,6 +2078,12 @@ bool gz::sim::systems::ArduPilotPlugin::CreateStateJSON(
 /////////////////////////////////////////////////
 void gz::sim::systems::ArduPilotPlugin::SendState() const
 {
+    if (this->dataPtr->json_str.empty())
+    {
+        gzwarn << "[" << this->dataPtr->modelName << "] "
+        << "SendState() called but there is no current state, yet. Not sending anything. Call CreateStateJSON() first!";
+        return;
+    }
 #if DEBUG_JSON_IO
     auto bytes_sent =
 #endif
